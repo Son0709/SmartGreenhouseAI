@@ -1,5 +1,5 @@
 dataset_id,name,url,download_url,version,download_date,license,task,sha256,extracted_path,notes
-laboro_tomato,Laboro Tomato,https://github.com/laboroai/LaboroTomato,https://assets.laboro.ai.s3.amazonaws.com/laborotomato/laboro_tomato.zip,,,CC BY-NC-SA 4.0,detection+segmentation,,,Nguon chinh cho tomato_ripeness_v1
+laboro_tomato,Laboro Tomato,https://github.com/laboroai/LaboroTomato,http://assets.laboro.ai.s3.amazonaws.com/laborotomato/laboro_tomato.zip,,,CC BY-NC-SA 4.0,detection+segmentation,,,Nguon chinh cho tomato_ripeness_v1; dung http:// vi https:// bi loi TLS cert mismatch tren bucket ten co dau cham
 agrob_tomato,AgRobTomato,https://zenodo.org/records/5596799,https://zenodo.org/records/5596799/files/Dataset-Greenhouse_Tomato_AgRob.zip?download=1,,,CAN_XAC_MINH_TREN_ZENODO,detection,,,Anh robot di chuyen trong nha kinh
 tomato_plantfactory,TomatoPlantfactoryDataset,https://data.mendeley.com/datasets/8h3s6jkyff/3,https://data.mendeley.com/public-files/datasets/8h3s6jkyff/files/beabf9c1-06dd-44e7-848f-a4352035e34c/file_downloaded,3,,CC BY 4.0,detection,,,Link tai xac minh 2026-08-05 qua Mendeley public API
 openfield_bd,OpenField-BD Tomato Maturity,https://zenodo.org/records/20176021,https://zenodo.org/records/20176021/files/OF-Tomato-BD.rar?download=1,,,CHUA_RO,detection,,,KHONG dung train truoc khi xac nhan license; chi dung test ngoai mien
