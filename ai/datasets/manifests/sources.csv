@@ -1,0 +1,10 @@
+dataset_id,name,url,download_url,version,download_date,license,task,sha256,extracted_path,notes
+laboro_tomato,Laboro Tomato,https://github.com/laboroai/LaboroTomato,https://assets.laboro.ai.s3.amazonaws.com/laborotomato/laboro_tomato.zip,,,CC BY-NC-SA 4.0,detection+segmentation,,,Nguon chinh cho tomato_ripeness_v1
+agrob_tomato,AgRobTomato,https://zenodo.org/records/5596799,https://zenodo.org/records/5596799/files/Dataset-Greenhouse_Tomato_AgRob.zip?download=1,,,CAN_XAC_MINH_TREN_ZENODO,detection,,,Anh robot di chuyen trong nha kinh
+tomato_plantfactory,TomatoPlantfactoryDataset,https://data.mendeley.com/datasets/8h3s6jkyff/3,https://data.mendeley.com/public-files/datasets/8h3s6jkyff/files/beabf9c1-06dd-44e7-848f-a4352035e34c/file_downloaded,3,,CC BY 4.0,detection,,,Link tai xac minh 2026-08-05 qua Mendeley public API
+openfield_bd,OpenField-BD Tomato Maturity,https://zenodo.org/records/20176021,https://zenodo.org/records/20176021/files/OF-Tomato-BD.rar?download=1,,,CHUA_RO,detection,,,KHONG dung train truoc khi xac nhan license; chi dung test ngoai mien
+kaggle_tomato_states,Tomatoes Dataset (Kaggle),https://www.kaggle.com/datasets/enalis/tomatoes-dataset,Attach qua Kaggle Add Input,,,CC0,classification,,,Khong co bounding box; dung cho classifier Old/Damaged
+tomato_maturity_ieee,Tomato Maturity Detection (IEEE),https://universe.roboflow.com/helmiubayastudent/tomato-maturity-detection-ieee,Roboflow API export,,,CC BY 4.0,detection,,,Can Roboflow API key; nguon cho tomato_ripeness_v2_6classes giai doan sau
+fruit_morpheus,Tomato Ripeness Detection (Morpheus),https://universe.roboflow.com/morpheus-4kkqr/tomato-ripeness-detection-tjysz,Roboflow API export,,,CAN_AUDIT,detection,,,Chua duoc dua vao merged cho den khi hoan thanh dataset audit report
+leaf_roboflow,Tomato Leaf Disease (Roboflow),https://universe.roboflow.com/universitas-atma-jaya/tomato-leaf-disease-rxcft,Roboflow API export,,,CC BY 4.0,detection,,,Can Roboflow API key; nguon chinh cho tomato_leaf_disease_v1
+leaf_zenodo,Tomato Leaf Disease Detection (Zenodo),https://zenodo.org/records/20004230,,,,CAN_XAC_MINH,detection,,,Bo sung bo benh la; xac minh class/license sau khi tai

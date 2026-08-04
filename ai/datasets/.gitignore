@@ -1,0 +1,14 @@
+# Dữ liệu thật chỉ sống trên Kaggle (input/output dataset), không commit vào git.
+raw/
+interim/
+processed/
+*.zip
+*.rar
+*.tar
+*.tar.gz
+
+# Manifest và mapping thì giữ lại để version hóa.
+!manifests/
+!manifests/*.csv
+!manifests/*.yaml
+!manifests/*.md
