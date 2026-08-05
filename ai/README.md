@@ -11,6 +11,7 @@ ai/
 ├── notebooks/
 │   ├── 00_data_acquisition_ripeness.ipynb   # tải + đóng băng dataset nhánh độ chín (đã có)
 │   ├── 01_build_tomato_ripeness_v1.ipynb    # audit + class mapping + convert + dedup + split → dataset hoàn chỉnh (đã có)
+│   ├── 01b_dataset_report_ripeness.ipynb    # đọc lại Kaggle Dataset đã build, thống kê + ảnh ví dụ (đã có)
 │   ├── 00_data_acquisition_leaf.ipynb       # tải bộ bệnh lá qua Roboflow API (chưa tạo)
 │   ├── 01_build_tomato_leaf_disease_v1.ipynb # (chưa tạo)
 │   ├── 02_train_ripeness_baseline.ipynb     # (chưa tạo)
@@ -25,8 +26,9 @@ ai/
 
 1. **`00_data_acquisition_ripeness.ipynb`** — tải Laboro, AgRobTomato, TomatoPlantfactoryDataset, OpenField-BD (curl trực tiếp) + attach Kaggle Dataset `enalis/tomatoes-dataset`. Bật **Internet: ON** trong Settings trước khi chạy. Save Version để lấy output làm input cho bước 2.
 2. **`01_build_tomato_ripeness_v1.ipynb`** — Add Input output của bước 1. Khám phá cấu trúc thật, liệt kê tên class gốc, convert COCO/VOC/YOLO → YOLO 3-class thống nhất, phát hiện trùng ảnh, chia split chống leakage, sinh `tomato_ripeness_v1` hoàn chỉnh + manifest. Save Version để có Kaggle Dataset dùng cho training.
-3. Song song/sau đó: nhánh bệnh lá qua Roboflow API (đã có API key) — `00_data_acquisition_leaf.ipynb` rồi `01_build_tomato_leaf_disease_v1.ipynb`.
-4. Baseline training riêng cho từng nhánh (YOLO nano, imgsz 640, epochs ~100, patience 20, seed 42) theo cấu hình trong hai tài liệu gốc — `02_train_ripeness_baseline.ipynb` / `03_train_leaf_baseline.ipynb`, đánh giá riêng trên `test` và `test_outdomain_openfield` để đo domain gap.
+3. **`01b_dataset_report_ripeness.ipynb`** (tùy chọn nhưng khuyến nghị) — Add Input output đã Save Version của bước 2, đọc lại (không build lại) để in thống kê số ảnh/box theo class-split, kích thước ảnh, biểu đồ phân bố class, ảnh mẫu kèm bounding box, và toàn bộ báo cáo/license gốc. Dùng để xác nhận nhanh dataset trước khi train.
+4. Song song/sau đó: nhánh bệnh lá qua Roboflow API (đã có API key) — `00_data_acquisition_leaf.ipynb` rồi `01_build_tomato_leaf_disease_v1.ipynb`.
+5. Baseline training riêng cho từng nhánh (YOLO nano, imgsz 640, epochs ~100, patience 20, seed 42) theo cấu hình trong hai tài liệu gốc — `02_train_ripeness_baseline.ipynb` / `03_train_leaf_baseline.ipynb`, đánh giá riêng trên `test` và `test_outdomain_openfield` để đo domain gap.
 
 ## Nguồn tài liệu tham chiếu
 
