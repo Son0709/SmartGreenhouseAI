@@ -12,8 +12,8 @@ ai/
 │   ├── 00_data_acquisition_ripeness.ipynb   # tải + đóng băng dataset nhánh độ chín (đã có)
 │   ├── 01_build_tomato_ripeness_v1.ipynb    # audit + class mapping + convert + dedup + split → dataset hoàn chỉnh (đã có)
 │   ├── 01b_dataset_report_ripeness.ipynb    # đọc lại Kaggle Dataset đã build, thống kê + ảnh ví dụ (đã có)
-│   ├── 00_data_acquisition_leaf.ipynb       # tải bộ bệnh lá qua Roboflow API (chưa tạo)
-│   ├── 01_build_tomato_leaf_disease_v1.ipynb # (chưa tạo)
+│   ├── 00_data_acquisition_leaf.ipynb       # tải bộ bệnh lá qua Roboflow API + Zenodo (đã có)
+│   ├── 01_build_tomato_leaf_disease_v1.ipynb # class mapping + negative sample + dedup + split → dataset hoàn chỉnh (đã có)
 │   ├── 02_train_ripeness_baseline.ipynb     # (chưa tạo)
 │   └── 03_train_leaf_baseline.ipynb         # (chưa tạo)
 ├── datasets/
@@ -27,8 +27,9 @@ ai/
 1. **`00_data_acquisition_ripeness.ipynb`** — tải Laboro, AgRobTomato, TomatoPlantfactoryDataset, OpenField-BD (curl trực tiếp) + attach Kaggle Dataset `enalis/tomatoes-dataset`. Bật **Internet: ON** trong Settings trước khi chạy. Save Version để lấy output làm input cho bước 2.
 2. **`01_build_tomato_ripeness_v1.ipynb`** — Add Input output của bước 1. Khám phá cấu trúc thật, liệt kê tên class gốc, convert COCO/VOC/YOLO → YOLO 3-class thống nhất, phát hiện trùng ảnh, chia split chống leakage, sinh `tomato_ripeness_v1` hoàn chỉnh + manifest. Save Version để có Kaggle Dataset dùng cho training.
 3. **`01b_dataset_report_ripeness.ipynb`** (tùy chọn nhưng khuyến nghị) — Add Input output đã Save Version của bước 2, đọc lại (không build lại) để in thống kê số ảnh/box theo class-split, kích thước ảnh, biểu đồ phân bố class, ảnh mẫu kèm bounding box, và toàn bộ báo cáo/license gốc. Dùng để xác nhận nhanh dataset trước khi train.
-4. Song song/sau đó: nhánh bệnh lá qua Roboflow API (đã có API key) — `00_data_acquisition_leaf.ipynb` rồi `01_build_tomato_leaf_disease_v1.ipynb`.
-5. Baseline training riêng cho từng nhánh (YOLO nano, imgsz 640, epochs ~100, patience 20, seed 42) theo cấu hình trong hai tài liệu gốc — `02_train_ripeness_baseline.ipynb` / `03_train_leaf_baseline.ipynb`, đánh giá riêng trên `test` và `test_outdomain_openfield` để đo domain gap.
+4. **`00_data_acquisition_leaf.ipynb`** — cần Kaggle Secret `ROBOFLOW_API_KEY` (Add-ons → Secrets, attach vào notebook). Liệt kê version thật của project Roboflow (không đoán số version) rồi tải về `raw/leaf_roboflow/`; tải thêm `raw/leaf_zenodo/` (chỉ để audit). Save Version để lấy output làm input cho bước 5.
+5. **`01_build_tomato_leaf_disease_v1.ipynb`** — Add Input output của bước 4. Remap 4 bệnh mục tiêu, chuyển class `Healthy` thành negative sample (label rỗng), loại ảnh chỉ có bệnh ngoài phạm vi MVP, dedup + chia split, audit chéo SHA-256 với `leaf_zenodo` (chưa gộp — theo tài liệu, chỉ gộp sau khi xác nhận chất lượng/trùng lặp). Save Version để có Kaggle Dataset `tomato_leaf_disease_v1` dùng cho training.
+6. Baseline training riêng cho từng nhánh (YOLO nano, imgsz 640, epochs ~100, patience 20, seed 42) theo cấu hình trong hai tài liệu gốc — `02_train_ripeness_baseline.ipynb` / `03_train_leaf_baseline.ipynb`, đánh giá riêng trên `test` (và `test_outdomain_openfield` cho nhánh độ chín) để đo domain gap.
 
 ## Nguồn tài liệu tham chiếu
 
@@ -40,4 +41,6 @@ ai/
 
 - Không remap class chỉ dựa vào tên — xem `manifests/class_mapping.yaml` khi được tạo.
 - `openfield_bd` license chưa xác nhận → chỉ dùng test ngoài miền, không đưa vào train/merge.
+- `leaf_zenodo` chưa gộp vào `tomato_leaf_disease_v1` — chỉ audit (xem `manifests/zenodo_audit.md`) cho tới khi xác nhận class mapping/chất lượng label/mức trùng lặp.
+- Ảnh lá khỏe (`Healthy`) không tạo class riêng — giữ làm negative sample (label rỗng); ảnh chỉ có bệnh ngoài phạm vi MVP (không phải Healthy) bị loại hẳn thay vì bị coi nhầm là negative.
 - Mọi dataset gộp phải giữ trường `source_dataset` để đánh giá theo từng nguồn và chia split chống leakage theo video/cây/ngày.
