@@ -15,6 +15,7 @@ ai/
 │   ├── 00_data_acquisition_leaf.ipynb       # tải bộ bệnh lá qua Roboflow API + Zenodo (đã có)
 │   ├── 01_build_tomato_leaf_disease_v1.ipynb # class mapping + negative sample + dedup + split → dataset hoàn chỉnh (đã có)
 │   ├── 01b_dataset_report_leaf.ipynb        # đọc lại Kaggle Dataset đã build, thống kê + ảnh ví dụ (đã có)
+│   ├── 01c_review_negative_leaf.ipynb       # lọc ảnh negative nghi ngờ nhãn sai bằng từ khóa + chính model đã train (đã có)
 │   ├── 02_train_ripeness_baseline.ipynb     # train YOLOv8n baseline + đánh giá test/domain gap (đã có)
 │   └── 03_train_leaf_baseline.ipynb         # train YOLOv8n baseline + tỷ lệ báo động giả trên ảnh negative (đã có)
 ├── datasets/
@@ -33,6 +34,7 @@ ai/
 6. **`01b_dataset_report_leaf.ipynb`** (tùy chọn nhưng khuyến nghị) — Add Input output đã Save Version của bước 5, đọc lại (không build lại) để in thống kê số ảnh/box theo class-split, số ảnh negative, kích thước ảnh, biểu đồ, ảnh mẫu (cả dương lẫn negative) và toàn bộ báo cáo/audit gốc. Dùng để xác nhận nhanh dataset trước khi train.
 7. **`02_train_ripeness_baseline.ipynb`** — cần **Accelerator: GPU** (P100/T4x2). Add Input Kaggle Dataset `tomato_ripeness_v1`. Tự vá lại `path:` trong `data.yaml` (đường dẫn cũ từ session build không còn tồn tại), train YOLOv8n (imgsz 640, epochs 100, batch 16, patience 20, seed 42), đánh giá riêng trên `test` và `test_outdomain_openfield` để đo domain gap, lưu `best.pt` + train config + metrics + ảnh dự đoán mẫu.
 8. **`03_train_leaf_baseline.ipynb`** — cấu hình tương tự cho `tomato_leaf_disease_v1` (GPU, cùng vá `data.yaml`), đánh giá trên `test` (không có tập ngoài miền riêng cho nhánh này) + tính riêng tỷ lệ ảnh negative (lá khỏe) bị báo nhầm có bệnh (false positive trigger rate).
+9. **`01c_review_negative_leaf.ipynb`** (tùy chọn, chạy khi tỷ lệ báo động giả ở bước 8 cao) — Add Input cả dataset `tomato_leaf_disease_v1` lẫn output đã Save Version của bước 8 (chứa `best.pt`). Lọc ảnh negative nghi ngờ bị gắn nhãn Healthy sai bằng 2 lớp: từ khóa trong tên file gốc + chính model baseline tự báo có bệnh, gộp thành shortlist ưu tiên để xem lại bằng mắt thay vì rà thủ công toàn bộ. Chỉ chẩn đoán, không tự sửa dataset — kết quả dùng để cải thiện nhãn ở lần build kế tiếp.
 
 ## Nguồn tài liệu tham chiếu
 
