@@ -38,6 +38,28 @@ ai/
 8b. **`02b_review_domain_gap_ripeness.ipynb`** (tùy chọn, chạy khi domain gap ở bước 7 lớn) — Add Input dataset `tomato_ripeness_v1` + output đã Save Version của bước 7 (chứa `best.pt`). So khớp dự đoán với ground truth theo IoU trên `test_outdomain_openfield`, dựng ma trận nhầm lẫn, xem trực quan ảnh lỗi nhiều nhất (GT vs dự đoán), so sánh thống kê màu/độ sáng — để phân biệt domain gap là do lỗi nhãn (có thể sửa) hay domain shift thật (cần dữ liệu camera thật, không sửa được bằng gắn lại nhãn).
 9. **`01c_review_negative_leaf.ipynb`** (tùy chọn, chạy khi tỷ lệ báo động giả ở bước 8 cao) — Add Input cả dataset `tomato_leaf_disease_v1` lẫn output đã Save Version của bước 8 (chứa `best.pt`). Lọc ảnh negative nghi ngờ bị gắn nhãn Healthy sai bằng 2 lớp: từ khóa trong tên file gốc + chính model baseline tự báo có bệnh, gộp thành shortlist ưu tiên để xem lại bằng mắt thay vì rà thủ công toàn bộ. Chỉ chẩn đoán, không tự sửa dataset. Sau khi Save Version, quay lại bước 5 (Add Input thêm output của bước này) để tự động loại các ảnh đã xác nhận khỏi tập negative, rồi train lại từ bước 8.
 
+## Trạng thái hiện tại (sau baseline + 1 vòng cải thiện dữ liệu)
+
+**Nhánh độ chín (`tomato_ripeness_v1`, YOLOv8n baseline):** đạt cả 3 mục tiêu MVP tham khảo trên `test` cùng miền (Precision 0,826 / Recall 0,827 / mAP@0.5 0,878). Domain gap trên `test_outdomain_openfield` rất lớn (mAP@0.5 rơi còn 0,473) — `02b_review_domain_gap_ripeness.ipynb` đã điều tra và **xác nhận đây là domain shift thật, không phải lỗi nhãn** (class mapping của `openfield_bd` đã xác nhận đúng qua `data.yaml` thật từ trước):
+- Ma trận nhầm lẫn lệch hệ thống: 93% lỗi phân loại đi theo hướng đánh giá quả *xanh hơn* thực tế (`fruit_turning`→`fruit_green_unripe` chiếm 533/835 lỗi).
+- Model báo thừa (false positive) nhiều hơn cả số quả thật: 3.231 box thừa / 2.802 box GT trên 604 ảnh (~5,4 box thừa/ảnh) — xem ảnh trực quan cho thấy model "ảo giác" ra quả trên nền đất/đá ngoài đồng, một loại nền chưa từng xuất hiện trong dữ liệu train (toàn bộ nguồn trong miền đều chụp trong nhà kính).
+- Bằng chứng định lượng độc lập: chênh lệch độ bão hòa màu 44,5/255 giữa trong miền và `openfield_bd`.
+- Lưu ý: `openfield_bd` bản thân là ảnh **ngoài đồng** (không phải nhà kính) — domain gap đo được ở đây phản ánh độ nhạy cảm với thay đổi môi trường nói chung, chưa chắc đại diện chính xác gap thực tế khi triển khai trong nhà kính.
+
+**Nhánh bệnh lá (`tomato_leaf_disease_v1`, YOLOv8n baseline):** đạt cả 3 mục tiêu MVP thoải mái (Precision 0,918 / Recall 0,872 / mAP@0.5 0,937) sau 1 vòng cải thiện dữ liệu. `01c_review_negative_leaf.ipynb` phát hiện một lô ảnh liên tiếp trong dữ liệu gốc Roboflow bị gắn nhãn Healthy sai (`Leaf-Mold-509`–`524`, `Late-Blight-650`–`654`); loại 62 ảnh đã xác nhận và train lại giúp `leaf_mold` Recall tăng từ 0,666 → 0,774, tỷ lệ báo động giả trên ảnh lá khỏe giảm từ 24,6% → 19,7%.
+
+## Đề xuất bước tiếp theo
+
+1. **Ưu tiên cao nhất — thu thập ảnh thật từ camera IMX179** trong đúng môi trường nhà kính triển khai (cả quả lẫn lá). Đây là hành động ngoài phạm vi notebook (cần phần cứng thật), nhưng là nút thắt quan trọng nhất: domain shift đã xác nhận ở nhánh độ chín không thể sửa bằng cách xử lý lại dữ liệu public hiện có — chỉ dữ liệu thật mới thu hẹp được gap này. Ảnh thật cũng nên dùng làm test set thực tế thay thế dần cho `test_outdomain_openfield`.
+2. **Trong lúc chờ dữ liệu thật (có thể làm ngay trên Kaggle):** thử tăng cường augmentation màu/ánh sáng mạnh hơn (hsv_s, hsv_v, exposure) khi train lại nhánh độ chín, và cân nhắc thêm ảnh nền đất/ngoài trời làm "hard negative" (không chứa quả) để giảm tình trạng báo thừa trên nền lạ — đây là giảm nhẹ tạm thời, không thay thế được dữ liệu thật.
+3. **Dọn nốt các mục còn treo:**
+   - `review_required.csv` của AgRobTomato (116 box "reddish" chưa gán nhãn) — nhánh độ chín.
+   - Quyết định gộp `leaf_zenodo` hay không, dựa trên `zenodo_audit.md` đã có sẵn số liệu.
+   - 26 ảnh negative nhóm ưu tiên 1 (`priority == 1`, chỉ 1 trong 2 lớp lọc nghi ngờ) trong `01c_review_negative_leaf.ipynb` chưa được xem xét — nhóm ưu tiên 2 đã xử lý xong.
+   - Class-id của `tomato_plantfactory` vẫn là giả định (đã xác nhận trực quan nhưng chưa có `classes.txt` gốc để xác minh chính thức).
+4. **Sau khi có dữ liệu thật hoặc dọn xong các mục trên:** train "phiên bản chính thức" theo đúng quy trình mục 9 của tài liệu gốc — không chỉ tăng epoch mà phải dựa trên cải thiện dữ liệu/nhãn đã kiểm chứng.
+5. **Xa hơn (sau khi cả 2 baseline ổn định — đã đạt điều kiện này):** có thể thử nghiệm gộp 2 nhánh thành 1 model đa lớp (9 class: 4 bệnh lá + 3 độ chín + 2 class mở rộng), theo đúng lộ trình đề xuất trong tài liệu, chỉ khi có nhu cầu đơn giản hóa triển khai.
+
 ## Nguồn tài liệu tham chiếu
 
 - `TONG_HOP_YEU_CAU_VA_DE_XUAT_AI_SMART_GREENHOUSE.docx` — yêu cầu hệ thống, class mapping đề xuất, luồng inference/tích hợp.
