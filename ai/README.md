@@ -18,6 +18,7 @@ ai/
 │   ├── 01c_review_negative_leaf.ipynb       # lọc ảnh negative nghi ngờ nhãn sai bằng từ khóa + chính model đã train (đã có)
 │   ├── 02_train_ripeness_baseline.ipynb     # train YOLOv8n baseline + đánh giá test/domain gap (đã có)
 │   ├── 02b_review_domain_gap_ripeness.ipynb # điều tra domain gap trên test_outdomain_openfield: lỗi nhãn hay domain shift thật (đã có)
+│   ├── 02c_train_ripeness_augmented.ipynb   # train lại với augmentation màu/ánh sáng tăng cường, so trực tiếp với baseline (đã có)
 │   └── 03_train_leaf_baseline.ipynb         # train YOLOv8n baseline + tỷ lệ báo động giả trên ảnh negative (đã có)
 ├── datasets/
 │   ├── manifests/        # sources.csv, class_mapping.yaml, licenses.md — version hóa trong git
@@ -36,6 +37,7 @@ ai/
 7. **`02_train_ripeness_baseline.ipynb`** — cần **Accelerator: GPU** (P100/T4x2). Add Input Kaggle Dataset `tomato_ripeness_v1`. Tự vá lại `path:` trong `data.yaml` (đường dẫn cũ từ session build không còn tồn tại), train YOLOv8n (imgsz 640, epochs 100, batch 16, patience 20, seed 42), đánh giá riêng trên `test` và `test_outdomain_openfield` để đo domain gap, lưu `best.pt` + train config + metrics + ảnh dự đoán mẫu.
 8. **`03_train_leaf_baseline.ipynb`** — cấu hình tương tự cho `tomato_leaf_disease_v1` (GPU, cùng vá `data.yaml`), đánh giá trên `test` (không có tập ngoài miền riêng cho nhánh này) + tính riêng tỷ lệ ảnh negative (lá khỏe) bị báo nhầm có bệnh (false positive trigger rate).
 8b. **`02b_review_domain_gap_ripeness.ipynb`** (tùy chọn, chạy khi domain gap ở bước 7 lớn) — Add Input dataset `tomato_ripeness_v1` + output đã Save Version của bước 7 (chứa `best.pt`). So khớp dự đoán với ground truth theo IoU trên `test_outdomain_openfield`, dựng ma trận nhầm lẫn, xem trực quan ảnh lỗi nhiều nhất (GT vs dự đoán), so sánh thống kê màu/độ sáng — để phân biệt domain gap là do lỗi nhãn (có thể sửa) hay domain shift thật (cần dữ liệu camera thật, không sửa được bằng gắn lại nhãn).
+8c. **`02c_train_ripeness_augmented.ipynb`** (chạy sau khi 8b xác nhận domain shift thật) — Add Input dataset `tomato_ripeness_v1` (không cần model cũ). Train lại YOLOv8n với `hsv_s`/`hsv_v`/`hsv_h` cao hơn mặc định, so trực tiếp với số liệu baseline (đã lưu cứng trong notebook) trên cả `test` và `test_outdomain_openfield`, tách riêng xem tỷ lệ nhầm hướng "xanh hơn thực tế" và số box báo thừa có cải thiện không. Chỉ xử lý nguyên nhân màu sắc/ánh sáng — không xử lý được nguyên nhân báo thừa trên nền lạ (cần dữ liệu nền thật, không dùng `test_outdomain_openfield` để tạo hard negative vì sẽ phá vỡ tính độc lập của tập test).
 9. **`01c_review_negative_leaf.ipynb`** (tùy chọn, chạy khi tỷ lệ báo động giả ở bước 8 cao) — Add Input cả dataset `tomato_leaf_disease_v1` lẫn output đã Save Version của bước 8 (chứa `best.pt`). Lọc ảnh negative nghi ngờ bị gắn nhãn Healthy sai bằng 2 lớp: từ khóa trong tên file gốc + chính model baseline tự báo có bệnh, gộp thành shortlist ưu tiên để xem lại bằng mắt thay vì rà thủ công toàn bộ. Chỉ chẩn đoán, không tự sửa dataset. Sau khi Save Version, quay lại bước 5 (Add Input thêm output của bước này) để tự động loại các ảnh đã xác nhận khỏi tập negative, rồi train lại từ bước 8.
 
 ## Trạng thái hiện tại (sau baseline + 1 vòng cải thiện dữ liệu)
@@ -51,7 +53,7 @@ ai/
 ## Đề xuất bước tiếp theo
 
 1. **Ưu tiên cao nhất — thu thập ảnh thật từ camera IMX179** trong đúng môi trường nhà kính triển khai (cả quả lẫn lá). Đây là hành động ngoài phạm vi notebook (cần phần cứng thật), nhưng là nút thắt quan trọng nhất: domain shift đã xác nhận ở nhánh độ chín không thể sửa bằng cách xử lý lại dữ liệu public hiện có — chỉ dữ liệu thật mới thu hẹp được gap này. Ảnh thật cũng nên dùng làm test set thực tế thay thế dần cho `test_outdomain_openfield`.
-2. **Trong lúc chờ dữ liệu thật (có thể làm ngay trên Kaggle):** thử tăng cường augmentation màu/ánh sáng mạnh hơn (hsv_s, hsv_v, exposure) khi train lại nhánh độ chín, và cân nhắc thêm ảnh nền đất/ngoài trời làm "hard negative" (không chứa quả) để giảm tình trạng báo thừa trên nền lạ — đây là giảm nhẹ tạm thời, không thay thế được dữ liệu thật.
+2. ~~Trong lúc chờ dữ liệu thật: thử tăng cường augmentation màu/ánh sáng~~ — **đã làm** ở `02c_train_ripeness_augmented.ipynb` (`hsv_s` 0,7→0,9, `hsv_v` 0,4→0,6, `hsv_h` 0,015→0,02). Phần "hard negative nền đất" trong đề xuất gốc **không khả thi** mà không có dữ liệu mới: nguồn ảnh nền duy nhất hiện có là chính `test_outdomain_openfield`, dùng nó để tạo hard negative sẽ phá vỡ tính độc lập của tập test — để lại cho khi có ảnh thật (mục 1). *(Điền kết quả cụ thể vào đây sau khi chạy `02c` trên Kaggle.)*
 3. **Dọn nốt các mục còn treo:**
    - `review_required.csv` của AgRobTomato (116 box "reddish" chưa gán nhãn) — nhánh độ chín.
    - Quyết định gộp `leaf_zenodo` hay không, dựa trên `zenodo_audit.md` đã có sẵn số liệu.
