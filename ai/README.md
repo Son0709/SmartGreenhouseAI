@@ -16,7 +16,7 @@ ai/
 │   ├── 01_build_tomato_leaf_disease_v1.ipynb # class mapping + negative sample + dedup + split → dataset hoàn chỉnh (đã có)
 │   ├── 01b_dataset_report_leaf.ipynb        # đọc lại Kaggle Dataset đã build, thống kê + ảnh ví dụ (đã có)
 │   ├── 02_train_ripeness_baseline.ipynb     # train YOLOv8n baseline + đánh giá test/domain gap (đã có)
-│   └── 03_train_leaf_baseline.ipynb         # (chưa tạo)
+│   └── 03_train_leaf_baseline.ipynb         # train YOLOv8n baseline + tỷ lệ báo động giả trên ảnh negative (đã có)
 ├── datasets/
 │   ├── manifests/        # sources.csv, class_mapping.yaml, licenses.md — version hóa trong git
 │   └── (raw/interim/processed chỉ tồn tại trên Kaggle, xem .gitignore)
@@ -32,7 +32,7 @@ ai/
 5. **`01_build_tomato_leaf_disease_v1.ipynb`** — Add Input output của bước 4. Remap 4 bệnh mục tiêu, chuyển class `Healthy` thành negative sample (label rỗng), loại ảnh chỉ có bệnh ngoài phạm vi MVP, dedup (kể cả theo tên file gốc Roboflow — dữ liệu nguồn đã bị augment sẵn) + chia split, audit chéo SHA-256 với `leaf_zenodo` (chưa gộp — theo tài liệu, chỉ gộp sau khi xác nhận chất lượng/trùng lặp). Save Version để có Kaggle Dataset `tomato_leaf_disease_v1` dùng cho training.
 6. **`01b_dataset_report_leaf.ipynb`** (tùy chọn nhưng khuyến nghị) — Add Input output đã Save Version của bước 5, đọc lại (không build lại) để in thống kê số ảnh/box theo class-split, số ảnh negative, kích thước ảnh, biểu đồ, ảnh mẫu (cả dương lẫn negative) và toàn bộ báo cáo/audit gốc. Dùng để xác nhận nhanh dataset trước khi train.
 7. **`02_train_ripeness_baseline.ipynb`** — cần **Accelerator: GPU** (P100/T4x2). Add Input Kaggle Dataset `tomato_ripeness_v1`. Tự vá lại `path:` trong `data.yaml` (đường dẫn cũ từ session build không còn tồn tại), train YOLOv8n (imgsz 640, epochs 100, batch 16, patience 20, seed 42), đánh giá riêng trên `test` và `test_outdomain_openfield` để đo domain gap, lưu `best.pt` + train config + metrics + ảnh dự đoán mẫu.
-8. `03_train_leaf_baseline.ipynb` (chưa tạo) — cấu hình tương tự cho `tomato_leaf_disease_v1`, đánh giá trên `test` (không có tập ngoài miền riêng cho nhánh này).
+8. **`03_train_leaf_baseline.ipynb`** — cấu hình tương tự cho `tomato_leaf_disease_v1` (GPU, cùng vá `data.yaml`), đánh giá trên `test` (không có tập ngoài miền riêng cho nhánh này) + tính riêng tỷ lệ ảnh negative (lá khỏe) bị báo nhầm có bệnh (false positive trigger rate).
 
 ## Nguồn tài liệu tham chiếu
 
