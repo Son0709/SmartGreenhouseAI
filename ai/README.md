@@ -19,7 +19,9 @@ ai/
 │   ├── 02_train_ripeness_baseline.ipynb     # train YOLOv8n baseline + đánh giá test/domain gap (đã có)
 │   ├── 02b_review_domain_gap_ripeness.ipynb # điều tra domain gap trên test_outdomain_openfield: lỗi nhãn hay domain shift thật (đã có)
 │   ├── 02c_train_ripeness_augmented.ipynb   # train lại với augmentation màu/ánh sáng tăng cường, so trực tiếp với baseline (đã có)
-│   └── 03_train_leaf_baseline.ipynb         # train YOLOv8n baseline + tỷ lệ báo động giả trên ảnh negative (đã có)
+│   ├── 02d_review_reddish_agrob.ipynb       # xem xét 116 box "reddish" AgRobTomato, đề xuất class theo Hue thực đo (đã có)
+│   ├── 03_train_leaf_baseline.ipynb         # train YOLOv8n baseline + tỷ lệ báo động giả trên ảnh negative (đã có)
+│   └── 01d_review_leaf_remaining.ipynb      # audit chất lượng leaf_zenodo + xem 26 ảnh negative ưu tiên 1 (đã có)
 ├── datasets/
 │   ├── manifests/        # sources.csv, class_mapping.yaml, licenses.md — version hóa trong git
 │   └── (raw/interim/processed chỉ tồn tại trên Kaggle, xem .gitignore)
@@ -39,6 +41,8 @@ ai/
 8b. **`02b_review_domain_gap_ripeness.ipynb`** (tùy chọn, chạy khi domain gap ở bước 7 lớn) — Add Input dataset `tomato_ripeness_v1` + output đã Save Version của bước 7 (chứa `best.pt`). So khớp dự đoán với ground truth theo IoU trên `test_outdomain_openfield`, dựng ma trận nhầm lẫn, xem trực quan ảnh lỗi nhiều nhất (GT vs dự đoán), so sánh thống kê màu/độ sáng — để phân biệt domain gap là do lỗi nhãn (có thể sửa) hay domain shift thật (cần dữ liệu camera thật, không sửa được bằng gắn lại nhãn).
 8c. **`02c_train_ripeness_augmented.ipynb`** (chạy sau khi 8b xác nhận domain shift thật) — Add Input dataset `tomato_ripeness_v1` (không cần model cũ). Train lại YOLOv8n với `hsv_s`/`hsv_v`/`hsv_h` cao hơn mặc định, so trực tiếp với số liệu baseline (đã lưu cứng trong notebook) trên cả `test` và `test_outdomain_openfield`, tách riêng xem tỷ lệ nhầm hướng "xanh hơn thực tế" và số box báo thừa có cải thiện không. Chỉ xử lý nguyên nhân màu sắc/ánh sáng — không xử lý được nguyên nhân báo thừa trên nền lạ (cần dữ liệu nền thật, không dùng `test_outdomain_openfield` để tạo hard negative vì sẽ phá vỡ tính độc lập của tập test).
 9. **`01c_review_negative_leaf.ipynb`** (tùy chọn, chạy khi tỷ lệ báo động giả ở bước 8 cao) — Add Input cả dataset `tomato_leaf_disease_v1` lẫn output đã Save Version của bước 8 (chứa `best.pt`). Lọc ảnh negative nghi ngờ bị gắn nhãn Healthy sai bằng 2 lớp: từ khóa trong tên file gốc + chính model baseline tự báo có bệnh, gộp thành shortlist ưu tiên để xem lại bằng mắt thay vì rà thủ công toàn bộ. Chỉ chẩn đoán, không tự sửa dataset. Sau khi Save Version, quay lại bước 5 (Add Input thêm output của bước này) để tự động loại các ảnh đã xác nhận khỏi tập negative, rồi train lại từ bước 8.
+10. **`02d_review_reddish_agrob.ipynb`** (dọn mục treo, nhánh độ chín) — Add Input output đã Save Version của bước 1 (`raw/agrob_tomato`) + bước 2 (`review_required.csv`). Tính Hue trung bình từng box "reddish" thật, so với tâm màu Hue của 2 class đã biết chắc (`breaking`→`fruit_turning`, `riped`→`fruit_ripe`) để đề xuất gán class theo khoảng cách màu gần nhất thay vì đoán, kèm xác nhận trực quan trước khi tin. Sinh `reddish_class_decision.csv` — chưa tự áp dụng vào dataset.
+11. **`01d_review_leaf_remaining.ipynb`** (dọn 2 mục treo, nhánh bệnh lá) — Add Input output của bước 4 (`raw/leaf_zenodo`), bước 5 mới nhất, và bước 9 (`negative_images_full_scan.csv`). Phần A: audit trực quan chất lượng label `leaf_zenodo` theo từng class, đối chiếu 4 tiêu chí gộp. Phần B: xem 26 ảnh negative nhóm ưu tiên 1 (chỉ 1 trong 2 lớp lọc nghi ngờ ở bước 9) mà nhóm ưu tiên 2 chưa xử lý. Chỉ chẩn đoán, không tự sửa dataset.
 
 ## Trạng thái hiện tại (sau baseline + 1 vòng cải thiện dữ liệu)
 
@@ -48,17 +52,23 @@ ai/
 - Bằng chứng định lượng độc lập: chênh lệch độ bão hòa màu 44,5/255 giữa trong miền và `openfield_bd`.
 - Lưu ý: `openfield_bd` bản thân là ảnh **ngoài đồng** (không phải nhà kính) — domain gap đo được ở đây phản ánh độ nhạy cảm với thay đổi môi trường nói chung, chưa chắc đại diện chính xác gap thực tế khi triển khai trong nhà kính.
 
+**Cập nhật — `02c_train_ripeness_augmented.ipynb` (tăng `hsv_s` 0,7→0,9, `hsv_v` 0,4→0,6, `hsv_h` 0,015→0,02):** kết quả tốt hơn đáng kể so với dự đoán ban đầu (dự đoán sai: tưởng augmentation màu chỉ giúp phần nhầm lẫn độ chín, không đụng tới phần báo thừa — thực tế giúp cả hai).
+- `test` (cùng miền): gần như không đổi (mAP@0.5 0,878→0,876) — không đánh đổi hiệu năng.
+- `test_outdomain_openfield`: mAP@0.5 **0,473 → 0,573** (+0,0995), mAP@0.5:0.95 0,430→0,515.
+- Đối chiếu IoU chi tiết: box báo thừa (`extra`) giảm gần một nửa **3.231 → 1.673**; lỗi phân loại (`misclassified`) giảm 835→775; lỗi "đánh giá xanh hơn thực tế" giảm 777→644 (nhưng lỗi ngược lại tăng 58→131 — bớt thiên lệch 1 chiều nhưng chưa hết).
+- **Khuyến nghị: dùng model này (`models/tomato_ripeness_yolov8n_augmented.pt`) thay cho baseline gốc** làm điểm khởi đầu cho các bước tiếp theo — cải thiện thật, không có đánh đổi đáng kể.
+
 **Nhánh bệnh lá (`tomato_leaf_disease_v1`, YOLOv8n baseline):** đạt cả 3 mục tiêu MVP thoải mái (Precision 0,918 / Recall 0,872 / mAP@0.5 0,937) sau 1 vòng cải thiện dữ liệu. `01c_review_negative_leaf.ipynb` phát hiện một lô ảnh liên tiếp trong dữ liệu gốc Roboflow bị gắn nhãn Healthy sai (`Leaf-Mold-509`–`524`, `Late-Blight-650`–`654`); loại 62 ảnh đã xác nhận và train lại giúp `leaf_mold` Recall tăng từ 0,666 → 0,774, tỷ lệ báo động giả trên ảnh lá khỏe giảm từ 24,6% → 19,7%.
 
 ## Đề xuất bước tiếp theo
 
 1. **Ưu tiên cao nhất — thu thập ảnh thật từ camera IMX179** trong đúng môi trường nhà kính triển khai (cả quả lẫn lá). Đây là hành động ngoài phạm vi notebook (cần phần cứng thật), nhưng là nút thắt quan trọng nhất: domain shift đã xác nhận ở nhánh độ chín không thể sửa bằng cách xử lý lại dữ liệu public hiện có — chỉ dữ liệu thật mới thu hẹp được gap này. Ảnh thật cũng nên dùng làm test set thực tế thay thế dần cho `test_outdomain_openfield`.
-2. ~~Trong lúc chờ dữ liệu thật: thử tăng cường augmentation màu/ánh sáng~~ — **đã làm** ở `02c_train_ripeness_augmented.ipynb` (`hsv_s` 0,7→0,9, `hsv_v` 0,4→0,6, `hsv_h` 0,015→0,02). Phần "hard negative nền đất" trong đề xuất gốc **không khả thi** mà không có dữ liệu mới: nguồn ảnh nền duy nhất hiện có là chính `test_outdomain_openfield`, dùng nó để tạo hard negative sẽ phá vỡ tính độc lập của tập test — để lại cho khi có ảnh thật (mục 1). *(Điền kết quả cụ thể vào đây sau khi chạy `02c` trên Kaggle.)*
-3. **Dọn nốt các mục còn treo:**
-   - `review_required.csv` của AgRobTomato (116 box "reddish" chưa gán nhãn) — nhánh độ chín.
-   - Quyết định gộp `leaf_zenodo` hay không, dựa trên `zenodo_audit.md` đã có sẵn số liệu.
-   - 26 ảnh negative nhóm ưu tiên 1 (`priority == 1`, chỉ 1 trong 2 lớp lọc nghi ngờ) trong `01c_review_negative_leaf.ipynb` chưa được xem xét — nhóm ưu tiên 2 đã xử lý xong.
-   - Class-id của `tomato_plantfactory` vẫn là giả định (đã xác nhận trực quan nhưng chưa có `classes.txt` gốc để xác minh chính thức).
+2. ~~Trong lúc chờ dữ liệu thật: thử tăng cường augmentation màu/ánh sáng~~ — **Hoàn thành, kết quả tốt hơn kỳ vọng.** `02c_train_ripeness_augmented.ipynb` (`hsv_s` 0,7→0,9, `hsv_v` 0,4→0,6, `hsv_h` 0,015→0,02) giúp mAP@0.5 trên `test_outdomain_openfield` tăng từ 0,473 lên 0,573, và bất ngờ nhất là số box báo thừa trên nền lạ giảm gần một nửa (3.231→1.673) dù ban đầu dự đoán augmentation màu sẽ không đụng tới vấn đề này — không đánh đổi hiệu năng trên `test` cùng miền. Chi tiết xem mục "Trạng thái hiện tại" ở trên. Phần "hard negative nền đất" trong đề xuất gốc **không khả thi** mà không có dữ liệu mới: nguồn ảnh nền duy nhất hiện có là chính `test_outdomain_openfield`, dùng nó để tạo hard negative sẽ phá vỡ tính độc lập của tập test — để lại cho khi có ảnh thật (mục 1).
+3. **Dọn nốt các mục còn treo — notebook đã viết xong, đang chờ chạy trên Kaggle:**
+   - `review_required.csv` của AgRobTomato (116 box "reddish" chưa gán nhãn) — nhánh độ chín. → `02d_review_reddish_agrob.ipynb`.
+   - Quyết định gộp `leaf_zenodo` hay không, dựa trên `zenodo_audit.md` đã có sẵn số liệu. → `01d_review_leaf_remaining.ipynb` (Phần A).
+   - 26 ảnh negative nhóm ưu tiên 1 (`priority == 1`, chỉ 1 trong 2 lớp lọc nghi ngờ) trong `01c_review_negative_leaf.ipynb` chưa được xem xét — nhóm ưu tiên 2 đã xử lý xong. → `01d_review_leaf_remaining.ipynb` (Phần B).
+   - ~~Class-id của `tomato_plantfactory` vẫn là giả định~~ — **Coi là đã giải quyết.** Không có `classes.txt` gốc để xác minh chính thức (không tồn tại trong dataset gốc), nhưng đã xác nhận trực quan qua ảnh audit thật (`XAC_NHAN_tomato_plantfactory` ở `01_build_tomato_ripeness_v1.ipynb`): quả đỏ → `fruit_ripe`, quả xanh/nhạt → `fruit_green_unripe`, khớp đúng giả định `{0: green, 1: red}`. Đây là mức xác minh cao nhất có thể đạt được khi nguồn không cung cấp file khai báo class.
 4. **Sau khi có dữ liệu thật hoặc dọn xong các mục trên:** train "phiên bản chính thức" theo đúng quy trình mục 9 của tài liệu gốc — không chỉ tăng epoch mà phải dựa trên cải thiện dữ liệu/nhãn đã kiểm chứng.
 5. **Xa hơn (sau khi cả 2 baseline ổn định — đã đạt điều kiện này):** có thể thử nghiệm gộp 2 nhánh thành 1 model đa lớp (9 class: 4 bệnh lá + 3 độ chín + 2 class mở rộng), theo đúng lộ trình đề xuất trong tài liệu, chỉ khi có nhu cầu đơn giản hóa triển khai.
 
